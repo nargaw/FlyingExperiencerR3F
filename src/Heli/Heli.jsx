@@ -75,6 +75,8 @@ export default function Heli(props) {
     }
  }, [])
 
+
+
  useFrame((state, delta) => {
   rotorJoint?.current?.configureMotorVelocity(10, 2)
   // fuselageRef?.current?.setAngularDamping(0.1)
@@ -82,8 +84,14 @@ export default function Heli(props) {
   let quaternion = new THREE.Quaternion()
   fuselageMeshRef.current.getWorldPosition(position)
   fuselageMeshRef.current.getWorldQuaternion(quaternion)
-  console.log(quaternion)
+  // console.log(quaternion)
   // console.log(position.y)
+  if(position.y <= 5 && fuselageRef.current) {
+    fuselageRef.current.setGravityScale(1, true)
+    fuselageRef.current.setAngularDamping(0)
+    fuselageRef.current.setLinearDamping(0)
+    fuselageRef.current.setEnabledRotations(true, true, true, true)
+  }
   if(position.y > 5){
     fuselageRef.current.setGravityScale(0, true)
     fuselageRef.current.resetForces(true)
@@ -110,8 +118,18 @@ export default function Heli(props) {
   
   const time = state.clock.getElapsedTime()
   tailRotorMesh.current.rotation.x = time * 4.
+  let movingDirection = new THREE.Quaternion()
   // console.log(fuselageMeshRef.current.position)
   const { forward, backward, leftward, rightward, upward, downward } = getKeys()
+
+  const impulse = { x: 0, y: 0, z: 0 }
+    const torque = { x: 0, y: 0, z: 0 }
+  // console.log(delta)
+  const impulseStrength = 15000. * delta
+    const torqueStrength = 1 * delta
+
+    fuselageRef?.current?.applyImpulse(impulse)
+    fuselageRef?.current?.applyTorqueImpulse(torque)
  
   if(upward){
     fuselageRef.current.applyImpulse({x: 0, y: 9.81 * 2. , z: 0}, true)  
@@ -127,6 +145,12 @@ export default function Heli(props) {
     // fuselageRef.current.applyImpulse({x:0, y:0, z: 10}, true)
     // heli.current.position.z += 0.1
     console.log('forward')
+    impulse.z -= impulseStrength
+    // movingDirection.set(0, 0, 1)
+    // fuselageMeshRef.current.getWorldQuaternion(movingDirection)
+    // // movingDirection.applyQuaternion(fuselageMeshRef.current.quaternion)
+    // console.log(movingDirection)
+    // fuselageRef.current.applyImpulse({x:0, y:0, z: -10}, true)
   }
 
 
@@ -152,7 +176,7 @@ export default function Heli(props) {
 
   return (
     <group ref={heli} {...props} dispose={null}>
-      <RigidBody type={"dyanmic"} colliders={false} ref={fuselageRef} collisionGroups={interactionGroups(0, [1])} gravityScale={1} >
+      <RigidBody type={"dyanmic"} colliders={false} ref={fuselageRef} collisionGroups={interactionGroups(0, [1])} gravityScale={1} canSleep={false}>
         {/* <RoundCuboidCollider position={[0, 1.5, -1.75]} args={[0.5, 1., 5.85, 0.5]}/> */}
         <CuboidCollider position={[0, 1.5, -1.75]} args={[3., 1.5, 5.8]}/>
         <mesh

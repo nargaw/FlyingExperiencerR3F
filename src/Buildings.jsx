@@ -3,7 +3,6 @@ import { useRef, useEffect, useMemo} from 'react'
 
 export default function Buildings()
 {
-
     const cubes = useRef()
     const cubesCount = 100
     const instances = useMemo(() => {
